@@ -1,0 +1,521 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML>
+	<HEAD>
+		<TITLE>
+			A Small Hello 
+		</TITLE>
+
+		<link rel="stylesheet" type="text/css" href="dist/semantic.min.css">
+		<script
+			src="https://code.jquery.com/jquery-3.1.1.min.js"
+				integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+				crossorigin="anonymous"></script>
+		<script src="dist/semantic.min.js"></script>
+	</HEAD>
+<BODY>
+
+	<script>
+		var 
+			s_index = 0
+			,q_index = 0
+			,a_idx = 0
+			,q_arr = []
+			,a_arr = {}
+			,sel_arr = []
+			,name
+			,subject
+			,data
+			,selected = 40
+			,counter = 0;
+			;
+		window.onload = function() {
+			set_mode_view();
+		}
+
+
+		function set_mode_view(id)
+		{
+			$.ajax({
+				url:'http://localhost:3000/getMassiv',
+				success: serverDataParse,
+			})
+		}
+		function serverDataParse (d){
+
+			data = JSON.parse(d);
+			$("#list1").append($("<option>", {'value': "-1", "html":"Выберите предмет"}));
+			for (var i = 0; i < data.s.length; i++) {
+					$("#list1").append($("<option>", {'value': i, "html":data.s[i].name}))
+				}
+			BattStart();
+			}
+
+		function getQuestionsBySubject(s_index){
+			var
+				s_id = data.s[s_index].id;
+				q2 = []; 
+
+				for (var i=0; i<data.q.length; i++){
+					if (data.q[i].subjects_id== s_id){
+						q2.push(data.q[i]);
+						}
+					}
+					return q2;
+		}
+
+		function BattStart(){
+			$("#btnNext").on("click",  btnNextClick ) 
+		}
+
+		function btnNextClick(){
+			s_index = $("#list1").val();
+			if (s_index == "-1"){
+				alert ("Выберите предмет тестирования");
+				return;
+				}
+			name = $("#form1").val()
+			if (name == ""){
+				alert ("Введите свое имя и фамилию");
+				return;
+				}
+			subejct = $("#list1 :selected").text();
+			q_arr = getQuestionsBySubject(s_index);
+			q_arr = q_arr.shuffle();
+			BuildQCounter(q_index,a_arr.selected);
+		};
+
+				//ПЕРЕМЕШКА ВОПРОСОВ
+		Array.prototype.shuffle = function() {
+			for (var i = this.length - 1; i > 0; i--) {
+				var num = Math.floor(Math.random() * (i + 1));
+				var d = this[num];
+				this[num] = this[i];
+				this[i] = d;
+				    }
+			return this;
+		}
+
+				//ОТВЕТИ К ВОПРОСАМ
+		function getAnswersByQuestions(q_index){
+			if (q_index<q_arr.length){
+				var 
+					a_id = q_arr[q_index].id ;
+					a2 = {};
+				for (var i=0; i<data.a.length; i++){
+						if (data.a[i].id == a_id ){
+							a2 = data.a[i];
+						}
+					}
+					return a2;
+				}  
+		}
+
+		function BuildQCounter(q_index,selected){
+			a_arr = getAnswersByQuestions(q_index);
+			$(".center1").html("");
+			$("<div>", {id:"q_div"}).appendTo($(".center1"));
+			$("<p>", {id:"q"}).appendTo($("#q_div"));
+			$("<div>", {id:"divAns"}).appendTo($(".center1"));
+			$("<button>", {id:"butQ"}).html("Следующий").addClass("ui right labeled icon blue button").appendTo(
+				$(".center1")).append(
+				$("<i>").addClass("right arrow icon"));
+
+			$("<button>", {id:"butP"}).html("Предыдущий").addClass("ui left labeled icon blue button").appendTo(
+				$(".center1")).append(
+				$("<i>").addClass("left arrow icon"));
+			
+			$("<button>", {id:"butF"}).html("ФИНИШ").attr("disabled",true).addClass("ui left labeled icon green button").appendTo(
+				$(".center1")).append(
+				$("<i>").addClass("check circle icon"));
+
+			if (q_index<1){
+				$("#butP").attr("disabled",true);
+			}
+			if (q_index==q_arr.length-1){
+				$("#butQ").attr("disabled",true);
+			}
+
+			$("#q").html(q_arr[q_index].name);
+			$("<div>", {id:"butdiv"}).appendTo($(".center1"));
+			$("<div>").addClass("ui form").appendTo($("#divAns"));
+		    $("<div>").addClass("grouped fields katya").appendTo($(".ui.form"));
+			var item;
+			for (var i = 0; i < a_arr.options.length; i++){
+				if (i == a_arr.selected){
+						item = $("<input>",{'type':"radio", id : "cb"+i, "idx": i, "name":"example_", "checked":"cheched"})
+				}else{
+						item = $("<input>",{'type':"radio", id : "cb"+i, "idx": i, "name":"example_"})
+				}
+
+					$("<div>").addClass("field").appendTo($(".grouped.fields.katya")).append(
+			    $("<div>").addClass("ui radio checkbox").append(item).append(
+			    $("<label>").addClass("radiolab").html(a_arr.options[i])));
+			}
+		
+			$("#butF").on("click", Send);
+			$("#butdiv").append(SetBut);
+			$("#butQ").on("click", NextB );
+			$("#butP").on("click", PreviousB );
+			$("input[type=radio]").on("click",setChecked);
+
+		}
+
+
+
+		function NextB(){
+				q_index++;
+				BuildQCounter(q_index);
+			}
+
+		function PreviousB(){
+			if (q_index>0){
+				q_index--;
+				BuildQCounter(q_index);
+			}
+		}
+
+		function Switch(event){
+			q_index = event.data.q_index;
+			BuildQCounter(q_index);
+		}
+  		
+  		function setChecked(){
+  			
+  			var idx = $(this).attr('idx');
+  			if (!("selected" in a_arr)){
+  				a_arr.selected = idx;
+				$("#b"+q_index).css("background-color","#7FFF00");
+				counter++;
+			}
+			if (counter == q_arr.length){
+				$("#butF").attr("disabled",false);
+			}
+		}
+	
+  		function SetBut(){
+  			//var counter = 0;
+  			for (var i=0; i<q_arr.length; i++){
+  				var a_arr_ = getAnswersByQuestions(i);
+				$("<button>",{id: "b"+i}).html(i+1).addClass("SmallBut").on("click", {q_index : i}, Switch).appendTo($("#butdiv"));
+				if (i == q_index){
+					$("#b"+i).css("border", "2px solid #191970");
+				}
+				if ("selected" in a_arr_){
+					$("#b"+i).css("background-color","#7FFF00");
+					//counter++;
+				}
+			}
+			//console.log(counter);
+			//if (counter == q_arr.length){
+				//$("#butF").attr("disabled",false);
+			//}
+  		}
+
+  		function Send(){
+  			if (!(confirm("Вы уверены, что хотите закончить тест?"))){
+  				return;
+  			}
+  			var res_array = [];
+  			for (i=0;i<q_arr.length;i++){
+  				a_arr = getAnswersByQuestions(i);
+  				res_array[i] = a_arr;
+  			}
+  			res_array = JSON.stringify(res_array);
+		    $.ajax({
+		        url:'http://localhost:3000/getAnswers',
+		        method: 'POST',
+		        data: {"data": res_array, "name": name, "subject": subject}, 
+		        success:function (data) {
+		       		console.log(data);
+		       		data = JSON.parse(data)
+		       		$(".center1").html("");
+		       		$("<div>",{id:"result"}).appendTo($(".center1"));;
+		       		$('<p>', {id: "text_n"}).html(data.n+"!").appendTo($("#result"));
+		       		$('<p>', {id: "text_r"}).html("Ваш Результат:").appendTo($("#result"));
+		       		$('<p>', {id: "text_r2"}).html(data.points).appendTo($("#result"));
+		       }
+		   })
+  		}
+
+  			/*
+  			if ($("input[type=radio]:checked").length){
+				idx = $("input[type=radio]:checked").attr("idx");
+				a_arr.selected = idx;
+			}
+			else{
+				a_arr.selected = -1;
+			}
+			*/
+  		
+
+					/*function BuildRadio(selected){
+							$("<div>").addClass("ui form").appendTo($("#divAns"));
+					        $("<div>").addClass("grouped fields katya").appendTo($(".ui.form"));
+							var item;
+							for (var i = 0; i < a_arr.options.length; i++){
+								console.log("!");
+								if (i == selected){
+									item = $("<input>",{'type':"radio", id : "cb"+i, "idx": i, "name":"example_", "checked":"cheched"})
+								}else{
+									item = $("<input>",{'type':"radio", id : "cb"+i, "idx": i, "name":"example_"})
+								}
+
+	       						$("<div>").addClass("field").appendTo($(".grouped.fields.katya")).append(
+						        	$("<div>").addClass("ui radio checkbox").append(
+						        		item
+						        	).append(
+						        		$("<label>").addClass("radiolab").html(a_arr.options[i])
+						        	)
+						      	 );
+						
+					        }
+					
+					}*/
+
+					/*function Switch(event){
+						var q_index2 = event.data.q_index;
+						$("#divAns").html("");
+						a_arr = getAnswersByQuestions(q_index2);
+						$("#q").html(q_arr[q_index2].name);
+						//a_arr = getAnswersByQuestions(q_index2);
+						BuildRadio(a_arr.selected);
+						q_index = q_index2+1;
+
+					}
+
+					function Select(){
+						var idx;
+						console.log("------------");
+						
+
+						if ($("input[type=radio]:checked").length){
+							console.log($("input[type=radio]:checked").attr("idx"));
+							idx = $("input[type=radio]:checked").attr("idx");
+
+							a_arr.selected = idx;
+						}
+
+				     	var val = {};
+					    for (var i = 0; i < a_arr.options.length; i++){
+							if ($('#cb'+i).is(':checked') == true){
+							//a_arr[i].selected = $('#cb'+i).attr("idx");
+							//val.idx = $('#cb'+i).attr("idx");
+							//val.id = a_arr.id;
+							}
+						}
+						//return val;
+						console.log(a_arr)
+				     }
+
+					function SendPost() {
+						sel_arr = JSON.stringify(sel_arr);
+					    $.ajax({
+					        url:'http://localhost:3000/getAnswers',
+					        method: 'POST',
+					        data: {"data": sel_arr, "name": name, "subject": subject}, 
+					        success:function (data) {
+					       		console.log(data);
+					       		data = JSON.parse(data)
+					       		$("<div>",{id:"result"}).appendTo($(".center1"));;
+					       		$('<p>', {id: "text_n"}).html(data.n+"!").appendTo($("#result"));
+					       		$('<p>', {id: "text_r"}).html("Ваш Результат:").appendTo($("#result"));
+					       		$('<p>', {id: "text_r2"}).html(data.points).appendTo($("#result"));
+								//$("<p>").appendTo($("#cont"));
+					       }
+					    });
+					}
+
+				});	
+			}
+
+
+		}*/
+
+	</script>
+<style>
+body{
+	background-color:#B0E0E6;
+}
+#q_div{
+	height: 60;
+    padding: 8;
+    overflow: auto;
+}
+
+#butdiv{
+	text-align: center;
+    padding-top: 137;
+}
+.SmallBut{
+	margin: 2;
+}
+
+.field{
+	margin: 5px;
+}
+#butQ{
+	margin-top: 35;
+    position: absolute;
+    left: 340;
+}
+#butP{
+	margin-top: 35;
+	position: absolute;
+	left: 95;
+}
+#butF{
+	margin-top:90;
+	position: absolute;
+	left: 225;
+}
+#divAns{
+	
+	width: 400;
+    height: 120;
+    border: 2px solid #191970;
+    padding-top: 5;
+    padding-left: 10;
+    margin: 0 auto; 
+}
+#q, #text_r{
+	color: #191970;
+	font-family: Arial;
+	font-weight: bold;
+	font-size: 16px;
+}
+#text_r2{
+	color:#DC143C;
+	font: italic bold 28px Arial;
+}
+#text_n{
+	color: #191970;
+	font-family: Arial;
+	font-weight: bold;
+	font-size: 16px;
+}
+.center1{
+	margin: 0 auto;
+	position: relative;
+	width: 600px;
+	height: 350px;
+	/*background-color:#D8BFD8;*/
+	top: 100;
+	border: 2px solid #191970;
+}
+#form{
+	width: 196px;
+	position: absolute;
+	left: 35px;
+	bottom: 130px;
+}
+
+#list1{
+	position: absolute;
+	bottom: 128px; 
+  	right: 5px;
+}
+.ui.massive.blue.button{
+	position: absolute;
+	bottom: 50px;
+	left: 230;
+}
+#result{
+	text-align: center;
+    padding: 120;
+}
+label.radiolab{
+	font-weight: bold;
+}
+</style>
+
+<div id = "cont">
+	
+	<!--<div class="ui form" id="form">
+  		<div class="field">
+			<input id="form1" class="ui form" type="text" placeholder="Введите свое имя"></input>
+		</div>
+	</div>-->
+		
+  	<!--<select class="ui selection dropdown" id="list1"></select>-->
+	
+	<div class = "center1">
+		<select class="ui selection dropdown" id="list1"></select>
+
+		<div class="ui form" id="form">
+  		<div class="field">
+			<input id="form1" class="ui form" type="text" placeholder="Введите свое имя"></input>
+		</div>
+	</div>
+
+	<input type="button" class="ui massive blue button" tabindex="0" value="НАЧАТЬ" id="btnNext">
+	</div>
+</br>
+</br>
+</div>
+
+
+<!--
+<div class="ui form">
+  <div class="grouped fields">
+    <label>How often do you use checkboxes?</label>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="example2" checked="checked">
+        <label>Once a week</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="example2">
+        <label>2-3 times a week</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="example2">
+        <label>Once a day</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="example2">
+        <label>Twice a day</label>
+      </div>
+    </div>
+  </div>
+</div>
+-->
+
+<!--   <H1>Hi</H1> class="ui selection dropdown"
+<select id="list1"></select><br/>
+
+<div class="ui form" >
+  		<div class="field">
+    		<label>Выберите предмет</label>
+    			<select multiple="" class="ui dropdown" id="list1"></select>
+    	</div>
+    </div>	
+
+   <P>Tапиапапрпарапо ропропр крекерекр</P> 
+   <form action="/register" method="post">
+  First name:<br>
+  <input type="text" name="userAge"><br>
+  Last name:<br>
+  <input type="text" name="userName">
+  <input type="submit" value="Submit">
+</form>
+
+<select id="list1">
+  </select>
+ 
+ <div>
+ <p id="questions" class="myClass" prst="xxx"></p>
+</div>
+<form name="myform" action="myformhandler.cgi" method="POST">
+<input type="radio" id="1ans" name="group1"><br>
+<input type="radio" id="2ans" name="group1"><br>
+<input type="radio" id="3ans" name="group1"> 
+</form>
+<input type="button" value="Следующий вопрос" id="button">
+</BODY>
+</HTML>

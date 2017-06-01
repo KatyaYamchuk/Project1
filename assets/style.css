@@ -1,0 +1,93 @@
+body{
+	background-color:#B0E0E6;
+}
+#q_div{
+	height: 60;
+    padding: 8;
+    overflow: auto;
+}
+
+#butdiv{
+	text-align: center;
+    padding-top: 137;
+}
+.SmallBut{
+	margin: 2;
+}
+
+.field{
+	margin: 5px;
+}
+#butQ{
+	margin-top: 35;
+    position: absolute;
+    left: 340;
+}
+#butP{
+	margin-top: 35;
+	position: absolute;
+	left: 95;
+}
+#butF{
+	margin-top:90;
+	position: absolute;
+	left: 225;
+}
+#divAns{
+	
+	width: 400;
+    height: 120;
+    border: 2px solid #191970;
+    padding-top: 5;
+    padding-left: 10;
+    margin: 0 auto; 
+}
+#q, #text_r{
+	color: #191970;
+	font-family: Arial;
+	font-weight: bold;
+	font-size: 16px;
+}
+#text_r2{
+	color:#DC143C;
+	font: italic bold 28px Arial;
+}
+#text_n{
+	color: #191970;
+	font-family: Arial;
+	font-weight: bold;
+	font-size: 16px;
+}
+.center1{
+	margin: 0 auto;
+	position: relative;
+	width: 600px;
+	height: 350px;
+	/*background-color:#D8BFD8;*/
+	top: 100;
+	border: 2px solid #191970;
+}
+#form{
+	width: 196px;
+	position: absolute;
+	left: 35px;
+	bottom: 130px;
+}
+
+#list1{
+	position: absolute;
+	bottom: 128px; 
+  	right: 5px;
+}
+.ui.massive.blue.button{
+	position: absolute;
+	bottom: 50px;
+	left: 230;
+}
+#result{
+	text-align: center;
+    padding: 120;
+}
+label.radiolab{
+	font-weight: bold;
+}
